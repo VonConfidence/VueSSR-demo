@@ -7,6 +7,23 @@ const renderer = require('vue-server-renderer').createRenderer({
 })
 */
 
+const LRU = require('lru-cache'); //最近最少未使用
+
+// 判断是否过期的逻辑
+const isCacheable = req=> {
+  // 实现逻辑为，检查请求是否是用户特定(user-specific)。
+  // 只有非用户特定(non-user-specific)页面才会缓存
+  // Array.some / any
+  return true;  // 这里返回true  对每一个页面都进行缓存
+}
+
+// 缓存
+const microCache = LRU({
+  max: 100,
+  maxAge: 10000, // 条目在10s后过期
+})
+
+
 // 在webpack.server配置中开启 new VueSSRServerPlugin()的选项  打包后在dist目录下面生成文件
 const serverBundle = require('./dist/vue-ssr-server-bundle.json')
 // 在webpack.client配置中开启 new VueSSRClientPlugin()的选项  打包后在dist目录下面生成文件
@@ -16,6 +33,7 @@ const renderer = require('vue-server-renderer').createBundleRenderer(serverBundl
   runInNewContext: false,
   template: require('fs').readFileSync('./src/index.template.html', 'utf8'),
   clientManifest,
+  // cache: microCache // 组件级别的缓存 使用redis
 })
 
 server.use('/dist', express.static('./dist'))
@@ -30,6 +48,17 @@ server.use('/dist', express.static('./dist'))
 // const createApp = require('./dist/main.server.js').default
 
 server.get('*', (req, res) => {
+
+  const cacheable = isCacheable(req);
+  if (cacheable) {
+    const hit = microCache.get(req.url);
+    // 如果命中的缓存的话 直接返回
+    if (hit) {
+      console.log('-------------缓存命中---------------')
+      return res.end(hit)
+    }
+  }
+
   // 插值  传递给 createApp中 的参数值  如果不需要可以省略  重点查看createApp中是否使用
   const context = {
     title: 'vue ssr welcome',
@@ -50,6 +79,10 @@ server.get('*', (req, res) => {
         res.status(500).end('Internal Server Error')
       }
       return;
+    }
+    // 是否已经缓存 如果缓存的话 将其保存到缓存中
+    if (cacheable) {
+      microCache.set(req.url, html);
     }
     res.end(html)
   })
