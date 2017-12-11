@@ -32,6 +32,7 @@ export function createStore() {
         id,
         item
       }) {
+        // 往items对象上面添加 id属性 其值为item  item为api/index.js 中fetch传递过来的text
         Vue.set(state.items, id, item)
       }
     }

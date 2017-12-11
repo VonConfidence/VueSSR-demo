@@ -7,7 +7,14 @@
 </template>
 <script>
 import fooStoreModule from '@/store/modules/foo'
+
+import titleMixin from '@/title-mixin.js'
+
 export default {
+  mixins: [titleMixin],
+  title() {
+    return this.item.text
+  },
   // 该方法是在服务器端运行的方法
   asyncData({ store, route }) {
     // 注册foo模块
