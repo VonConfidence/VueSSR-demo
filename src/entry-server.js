@@ -21,6 +21,9 @@ export default context => {
           code: 404
         })
       }
+
+      console.log('SomeThing')
+
       // Promise应该resolve应用程序实例 以便它可以渲染
       Promise.all(matchedComponents.map(Component => {
         if (Component.asyncData) {
