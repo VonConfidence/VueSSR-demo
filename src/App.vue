@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <router-view></router-view>
     <img src="./assets/logo.png">
     <h1>{{ msg }}</h1>
     <input type="text" v-model="msg">

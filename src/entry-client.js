@@ -1,7 +1,7 @@
-import {createApp} from './app'
+import { createApp } from './app'
 
-//客户端特定引导逻辑...
-const { app } = createApp()
+const { app, router } = createApp()
 
-// 这里假定App.vue模板中根元素具有 id=app
-app.$mount('#app')
+router.onReady(() => {
+    app.$mount('#app')
+})

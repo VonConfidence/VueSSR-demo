@@ -15,7 +15,7 @@ server.use('/dist', express.static('./dist'))
 const createApp = require('./dist/main.server.js').default
 
 server.get('*', (req, res) => {
-   // 插值  传递给 createApp中 的参数值  如果不需要可以省略  重点查看createApp中是否使用
+  // 插值  传递给 createApp中 的参数值  如果不需要可以省略  重点查看createApp中是否使用
   const context = {
     title: 'vue ssr welcome',
     meta: `
@@ -25,25 +25,32 @@ server.get('*', (req, res) => {
     url: req.url
   }
 
-  const app = createApp(context)
-  // Vue的实例对象
-  /*// 另一种创建形式
-  const app = new Vue({
-    data: {
-      url: req.url
-    },
-    template: `<div>访问的 URL 是： {{ url }}
-      <h2>SEO Optimization</h2>
-    </div>`
-  })
-  */
-  // 第二个参数context 可以不传递  重点查看renderer模板中index.template.html是否使用了
-  renderer.renderToString(app, context, (err, html) => {
-    if (err) {
-      console.log(err);
-      res.status(500).end('Internal Server Error')
-      return
-    }
+  // createApp 实际上是 entry-server 中的函数 打包后
+  createApp(context).then(app => {
+    // 第二个参数context 可以不传递  重点查看renderer模板中index.template.html是否使用了
+    renderer.renderToString(app, context, (err, html) => {
+      if (err) {
+        if (err.code === 404) {
+          res.status(404).end('Page not found')
+        } else {
+          res.status(500).end('Internal Server Error')
+        }
+        return ;
+      }
+      res.end(html)
+    })
+    // Vue的实例对象
+    /*// 另一种创建形式
+    const app = new Vue({
+      data: {
+        url: req.url
+      },
+      template: `<div>访问的 URL 是： {{ url }}
+        <h2>SEO Optimization</h2>
+      </div>`
+    })
+    */
+
     /*  // 在不传递参数template的时候 使用下面的这种方法
     res.end(`
       <!DOCTYPE html>
@@ -53,7 +60,9 @@ server.get('*', (req, res) => {
       </html>
     `)*/
     // Vue里面的内容会自动输入到 <!--vue-ssr-outlet--> 注释里面进行替换
-    res.end(html)
+
+  }).catch(error=> {
+    console.log(error.message)
   })
 })
 server.listen(8080)

@@ -32,3 +32,7 @@ For detailed explanation on how things work, consult the [docs for vue-loader](h
         )
     ]
     ```
+
+## 文档API https://ssr.vuejs.org/zh/
+1. webpack  --config build/webpack.client.config.js
+2. webpack  --config build/webpack.server.config.js
