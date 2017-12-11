@@ -1,7 +1,17 @@
-import { createApp } from './app'
+import {
+  createApp
+} from './app'
 
-const { app, router } = createApp()
+// 客户端特定引导逻辑
+const {
+  app,
+  router,
+  store
+} = createApp()
 
+if (window.__INITIAL_STATE__) {
+  store.replaceState(window.__INITIAL_STATE__)
+}
 router.onReady(() => {
-    app.$mount('#app')
+  app.$mount('#app')
 })

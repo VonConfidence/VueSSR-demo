@@ -23,6 +23,11 @@ export function createRouter() {
       {
         path: '/home_test',
         component: (resolve) => require(['./components/Home.vue'], resolve)
+      },
+      {
+        path: '/item/:id',
+        component: () =>
+          import ('@/components/Item.vue')
       }
     ]
   })
