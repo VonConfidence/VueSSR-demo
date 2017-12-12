@@ -36,6 +36,7 @@ const renderer = require('vue-server-renderer').createBundleRenderer(serverBundl
   // cache: microCache // 组件级别的缓存 使用redis
 })
 
+// 静态文件目录
 server.use('/dist', express.static('./dist'))
 
 
@@ -69,7 +70,33 @@ server.get('*', (req, res) => {
     url: req.url
   }
 
+  // 流模式
+  // ps: 如果依赖由组件生命周期钩子函数填充的上下文数据, 则不建议使用流模式传输
+  const stream = renderer.renderToStream(context)
+  // 返回的值是 Node.js stream： 
+  
+  let html = '';
+
+  stream.on('data', data=> {
+    html += data.toString();
+  })
+
+  stream.on('end', ()=> {
+    res.end(html)
+
+    // 同时可以在这里进行缓存
+    if (cacheable) {
+      microCache.set(req.url, html);
+    }
+  })
+
+  stream.on('error', (error)=> {
+    console.log(error.message)
+  })
+
+
   // 使用createBundleRenderer 的时候 app参数不再需要传递  会自动注入 因此不需要用createApp
+  /*
   renderer.renderToString(context, (err, html) => {
     // 异常处理
     if (err) {
@@ -86,6 +113,7 @@ server.get('*', (req, res) => {
     }
     res.end(html)
   })
+  */
 
   // // createApp 实际上是 entry-server 中的函数 打包后
   // createApp(context).then(app => {
