@@ -26,6 +26,7 @@ import {
 // 导出一个工厂函数，用于创建新的
 // 应用程序、router 和 store 实例
 
+
 // 返回挂载路由之后的实例对象
 export function createApp() {
   const router = createRouter()

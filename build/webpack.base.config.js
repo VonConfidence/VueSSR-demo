@@ -5,6 +5,12 @@ function resolve(dir) {
   return path.join(__dirname, '..', dir)
 }
 
+// webpack.config.js
+const ExtractTextPlugin = require('extract-text-webpack-plugin')
+// CSS 提取应该只用于生产环境
+// 这样我们在开发过程中仍然可以热重载
+const isProduction = process.env.NODE_ENV === 'production'
+
 module.exports = {
   // entry: './src/main.js',
   output: {
@@ -15,16 +21,21 @@ module.exports = {
   module: {
     rules: [{
         test: /\.css$/,
-        use: [
-          'vue-style-loader',
-          'css-loader'
-        ],
+        // 重要：使用 vue-style-loader 替代 style-loader
+        use: isProduction ?
+          ExtractTextPlugin.extract({
+            use: 'css-loader',
+            fallback: 'vue-style-loader'
+          }) :
+          ['vue-style-loader', 'css-loader']
       }, {
         test: /\.vue$/,
         loader: 'vue-loader',
         options: {
-          loaders: {}
+          loaders: {},
           // other vue-loader options go here
+          // enable CSS extraction
+          extractCSS: isProduction
         }
       },
       {
@@ -76,6 +87,9 @@ if (process.env.NODE_ENV === 'production') {
     }),
     new webpack.LoaderOptionsPlugin({
       minimize: true
+    }),
+    new ExtractTextPlugin({
+      filename: 'common.[chunkhash].css'
     })
   ])
 }
